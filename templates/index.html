@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScrapeGPT</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+
+    <!-- CSS -->
+    <style>
+        .just-validate-error-label {
+            color: red;
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+
+        input.just-validate-error-field {
+            border-color: red !important;
+        }
+
+        pre code {
+            background-color: #f5f5f5 !important;
+            /* Abu-abu sangat muda */
+            color: #333 !important;
+            /* Warna teks gelap */
+        }
+
+        /* Wrapper utama */
+        .code-block {
+            position: relative;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        /* Header di atas kode */
+        .code-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #e0e0e0;
+            padding: 5px 10px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        /* Label bahasa */
+        .language-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Tombol copy */
+        .copy-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .copy-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {},
+            },
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Highlight.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+    <!-- Highlight.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+
+    <!-- Inisialisasi Highlight.js -->
+    <script>hljs.highlightAll();</script>
+
+    <!-- Google Icon -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body class="bg-white dark:bg-gray-900 w-full">
+    <!-- Navbar -->
+    <nav class="border-gray-200 sticky top-0">
+        <div class="max-w-screen-xl flex items-center justify-between mx-auto px-4 py-0 md:py-4">
+            <a href="/" class="flex items-center space-x-1 md:space-x-3 rtl:space-x-reverse -translate-y-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="50" height="50"
+                    class="size-[35px] md:size-[50px]" viewBox="0 0 50 50">
+                    <path
+                        d="M45.403,25.562c-0.506-1.89-1.518-3.553-2.906-4.862c1.134-2.665,0.963-5.724-0.487-8.237	c-1.391-2.408-3.636-4.131-6.322-4.851c-1.891-0.506-3.839-0.462-5.669,0.088C28.276,5.382,25.562,4,22.647,4	c-4.906,0-9.021,3.416-10.116,7.991c-0.01,0.001-0.019-0.003-0.029-0.002c-2.902,0.36-5.404,2.019-6.865,4.549	c-1.391,2.408-1.76,5.214-1.04,7.9c0.507,1.891,1.519,3.556,2.909,4.865c-1.134,2.666-0.97,5.714,0.484,8.234	c1.391,2.408,3.636,4.131,6.322,4.851c0.896,0.24,1.807,0.359,2.711,0.359c1.003,0,1.995-0.161,2.957-0.45	C21.722,44.619,24.425,46,27.353,46c4.911,0,9.028-3.422,10.12-8.003c2.88-0.35,5.431-2.006,6.891-4.535	C45.754,31.054,46.123,28.248,45.403,25.562z M35.17,9.543c2.171,0.581,3.984,1.974,5.107,3.919c1.049,1.817,1.243,4,0.569,5.967	c-0.099-0.062-0.193-0.131-0.294-0.19l-9.169-5.294c-0.312-0.179-0.698-0.177-1.01,0.006l-10.198,6.041l-0.052-4.607l8.663-5.001	C30.733,9.26,33,8.963,35.17,9.543z M29.737,22.195l0.062,5.504l-4.736,2.805l-4.799-2.699l-0.062-5.504l4.736-2.805L29.737,22.195z M14.235,14.412C14.235,9.773,18.009,6,22.647,6c2.109,0,4.092,0.916,5.458,2.488C28,8.544,27.891,8.591,27.787,8.651l-9.17,5.294	c-0.312,0.181-0.504,0.517-0.5,0.877l0.133,11.851l-4.015-2.258V14.412z M6.528,23.921c-0.581-2.17-0.282-4.438,0.841-6.383	c1.06-1.836,2.823-3.074,4.884-3.474c-0.004,0.116-0.018,0.23-0.018,0.348V25c0,0.361,0.195,0.694,0.51,0.872l10.329,5.81	L19.11,34.03l-8.662-5.002C8.502,27.905,7.11,26.092,6.528,23.921z M14.83,40.457c-2.171-0.581-3.984-1.974-5.107-3.919	c-1.053-1.824-1.249-4.001-0.573-5.97c0.101,0.063,0.196,0.133,0.299,0.193l9.169,5.294c0.154,0.089,0.327,0.134,0.5,0.134	c0.177,0,0.353-0.047,0.51-0.14l10.198-6.041l0.052,4.607l-8.663,5.001C19.269,40.741,17.001,41.04,14.83,40.457z M35.765,35.588	c0,4.639-3.773,8.412-8.412,8.412c-2.119,0-4.094-0.919-5.459-2.494c0.105-0.056,0.216-0.098,0.32-0.158l9.17-5.294	c0.312-0.181,0.504-0.517,0.5-0.877L31.75,23.327l4.015,2.258V35.588z M42.631,32.462c-1.056,1.83-2.84,3.086-4.884,3.483	c0.004-0.12,0.018-0.237,0.018-0.357V25c0-0.361-0.195-0.694-0.51-0.872l-10.329-5.81l3.964-2.348l8.662,5.002	c1.946,1.123,3.338,2.937,3.92,5.107C44.053,28.249,43.754,30.517,42.631,32.462z">
+                    </path>
+                </svg>
+                <span
+                    class="self-center text-lg md:text-2xl font-semibold whitespace-nowrap dark:text-white">ScrapeGPT</span>
+            </a>
+            <div class="w-auto flex items-center h-full" id="navbar-default">
+                <ul class="font-medium flex p-4 md:p-0 rounded-lg md:space-x-8 rtl:space-x-reverse items-center">
+                    {% if username %}
+                    <li>
+                        <button
+                            class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-xs md:text-sm font-medium text-gray-900 rounded-full group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80"
+                            data-modal-target="crud-modal-create" data-modal-toggle="crud-modal-create"
+                            onclick="changeFocus('crud-modal-create' ,'link')">
+                            <span
+                                class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-full group-hover:bg-transparent group-hover:dark:bg-transparent">
+                                Upload <i class="fa-solid fa-upload"></i>
+                            </span>
+                        </button>
+                    </li>
+                    <li>
+                        <button id="dropdownAvatarNameButton" data-dropdown-toggle="dropdownAvatarName"
+                            class="flex items-center text-xs md:text-sm pe-1 font-medium text-gray-900 rounded-full hover:text-blue-600 dark:hover:text-blue-500 md:me-0 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-white -translate-y-0.5"
+                            type="button">
+                            <span class="sr-only">Open user menu</span>
+                            <i class="fa-solid fa-circle-user text-2xl mr-2"></i>
+                            {{ name }}
+                            <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 10 6">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" d="m1 1 4 4 4-4" />
+                            </svg>
+                        </button>
+
+                        <!-- Dropdown menu -->
+                        <div id="dropdownAvatarName"
+                            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600">
+                            <div class="px-4 py-3 text-xs md:text-sm text-gray-900 dark:text-white">
+                                <div class="font-medium ">User</div>
+                                <div class="truncate">{{ username }}</div>
+                            </div>
+                            <div class="py-2">
+                                <a onclick="changeFocus('popup-modal-signout' ,'signout-cancel')"
+                                    data-modal-target="popup-modal-signout" data-modal-toggle="popup-modal-signout"
+                                    class="block px-4 py-2 text-xs md:text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer"><i
+                                        class="fa-solid fa-arrow-right-from-bracket"></i> Sign
+                                    out </a>
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li>
+                        <button type="button"
+                            class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-full  text-xs md:text-sm px-5 py-2.5 text-center me-2 mb-2"
+                            data-modal-target="authentication-modal-signup"
+                            data-modal-toggle="authentication-modal-signup"
+                            onclick="changeFocus('authentication-modal-signup' ,'name')">Sign
+                            up <i class="fa-solid fa-user-plus"></i></button>
+                    </li>
+                    <li>
+                        <button
+                            class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-xs md:text-sm font-medium text-gray-900 rounded-full group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80"
+                            data-modal-target="authentication-modal-signin"
+                            data-modal-toggle="authentication-modal-signin"
+                            onclick="changeFocus('authentication-modal-signin' ,'username')">
+                            <span
+                                class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-full group-hover:bg-transparent group-hover:dark:bg-transparent">
+                                Sign in <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                            </span>
+                        </button>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="flex items-center justify-center w-full mt-4">
+        <!-- mobile view -->
+        {% if username %}
+        <ul class="md:hidden flex flex-col w-[95%]">
+            {% for link in links %}
+            <li class="flex justify-between items-center rounded-xl hover:bg-slate-100 p-3">
+                <!-- Data -->
+                <div class="flex items-center">
+                    <!-- Number -->
+                    <p class="text-sm text-center">{{ loop.index }}</p>
+
+                    <div class="flex flex-col ml-4">
+                        <!-- Chat titles on ChatGPT -->
+                        <p class="text-sm line-clamp-2">{{ link.title }}</p>
+                        <a class="font-medium text-blue-600 dark:text-blue-500 underline text-xs" href="{{ link.link }}"
+                            target="_blank">
+                            Link
+                        </a>
+                        <!-- Uploader Name -->
+                        <p class="text-xs lien-clamp-1 text-slate-700">
+                            {{ link.user.name }} / {{ link.user.username }}
+                        </p>
+                        <p class="text-xs lien-clamp-1 text-slate-700">
+                            {{ link.updated_at.strftime("%A, %d %B %Y") }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- More Button -->
+                <button id="moreMenu" data-dropdown-toggle="more-menu-{{ loop.index }}" type="button"
+                    class="block text-slate-600 hover:text-black hover:bg-slate-300 focus:ring-2 focus:outline-none focus:ring-slate-300 rounded-full p-px text-center inline-flex items-center">
+                    <!-- More Icon -->
+                    <span class="material-symbols-outlined"> more_horiz </span>
+                    <span class="sr-only">Icon description</span>
+                </button>
+
+                <!-- More dropdown menu -->
+                <div id="more-menu-{{ loop.index }}"
+                    class="z-10 hidden bg-white divide-y divide-gray-100 rounded-2xl shadow border w-44">
+                    <ul class="p-1 text-sm text-gray-700" aria-labelledby="moreMenu">
+                        <li>
+                            <!-- Expand Button for Mobile -->
+                            <button class="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-xl" type="button"
+                                data-tooltip-target="expand-button-tooltip" data-tooltip-placement="bottom"
+                                class="text-slate-600 hover:text-black hover:bg-slate-300 focus:ring-2 focus:outline-none focus:ring-slate-300 rounded-full p-1 text-center inline-flex items-center"
+                                data-drawer-target="drawer-right" data-drawer-show="drawer-right"
+                                data-drawer-placement="right" aria-controls="drawer-right" data-title="{{ link.title }}"
+                                data-conversations='{{ link.conversations | tojson | safe }}'
+                                onclick="handleClick(this)">
+                                Expand
+                            </button>
+                        </li>
+
+                        {% if link.user.username == username %}
+                        <li>
+                            <!-- Edit Button for Mobile -->
+                            <button type="button" class="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-xl"
+                                data-modal-target="crud-modal-edit" data-modal-toggle="crud-modal-edit"
+                                onclick="openEditLinkForm('{{ link.id }}', '{{ link.link}}', 'edit-link-form', '{{ link.title }}')">
+                                Edit
+                            </button>
+                        </li>
+                        <li>
+                            <!-- Delete Button for Mobile -->
+                            <button type="button" class="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-xl"
+                                data-modal-target="crud-modal-delete" data-modal-toggle="crud-modal-delete"
+                                onclick="openDeleteLinkForm('{{ link.id }}', '{{ link.title }}', 'delete-link-form')">
+                                Delete
+                            </button>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <h2 class="md:hidden text-lg text-center font-bold text-gray-900 dark:text-white px-4"> Login First To See
+            Your
+            Conversations </h2>
+        {% endif %}
+
+        <!-- table desktop view -->
+        {% if username %}
+        <div class="hidden md:flex max-w-[98%] lg:max-w-screen-xl w-full items-center justify-center mt-12">
+            <table class="table-fixed w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 w-[3%]">
+                            #
+                        </th>
+                        <th scope="col" class="px-6 py-3 w-[25%]">
+                            Title
+                        </th>
+                        <th scope="col" class="px-6 py-3 w-[20%]">
+                            Uploader Name / Username
+                        </th>
+                        <th scope="col" class="px-6 py-3 w-[25%]">
+                            Link
+                        </th>
+                        <th scope="col" class="px-6 py-3 w-[17%]">
+                            Date
+                        </th>
+                        <th scope="col" class="px-6 py-3 w-[10%]">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for link in links %}
+                    <tr
+                        class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700 border-gray-200">
+                        <td class="px-6 py-4 w-[3%]">
+                            {{ loop.index }}
+                        </td>
+                        <th scope="row" class="px-6 py-4 w-[25%] font-medium text-gray-900 dark:text-white">
+                            {{ link.title }}
+                        </th>
+                        <th scope="row" class="px-6 py-4 w-[20%] font-medium text-gray-900 dark:text-white">
+                            {{ link.user.name }} / {{ link.user.username }}
+                        </th>
+                        <td class="px-6 py-4 w-[25%] break-all">
+                            <a href="{{ link.link }}"
+                                class="font-medium text-blue-600 dark:text-blue-500 hover:underline">{{ link.link }}</a>
+                        </td>
+                        <td class="px-6 py-4 w-[17%]">
+                            {{ link.updated_at.strftime("%A, %d %B %Y") }}
+                        </td>
+                        <td class="px-6 py-4 relative w-[10%]">
+                            <button data-popover-target="popover-bottom-expand-{{ loop.index }}"
+                                data-popover-placement="bottom" type="button"
+                                class="text-white mb-3 me-4 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm px-2.5 py-1.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                                data-drawer-target="drawer-right" data-drawer-show="drawer-right"
+                                data-drawer-placement="right" aria-controls="drawer-right" data-title="{{ link.title }}"
+                                data-conversations='{{ link.conversations | tojson | safe }}'
+                                onclick="handleClick(this)"><i
+                                    class="fa-solid fa-up-right-and-down-left-from-center text-xs"></i></button>
+                            <div data-popover id="popover-bottom-expand-{{ loop.index }}" role="tooltip"
+                                class="absolute z-10 invisible inline-block w-auto text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-xs opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800 flex items-center justify-center">
+                                <div class="px-3 py-2">
+                                    <p>Expand</p>
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
+                            <button data-popover-target="popover-bottom-edit-{{ loop.index }}"
+                                data-popover-placement="bottom" type="button"
+                                class="text-white mb-3 me-4 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm px-2.5 py-1.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                                data-modal-target="crud-modal-edit" data-modal-toggle="crud-modal-edit"
+                                onclick="openEditLinkForm('{{ link.id }}', '{{ link.link}}', 'edit-link-form', '{{ link.title }}')"><i
+                                    class="fa-solid fa-pen text-xs"></i></button>
+                            <div data-popover id="popover-bottom-edit-{{ loop.index }}" role="tooltip"
+                                class="absolute z-10 invisible inline-block w-auto text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-xs opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800 flex items-center justify-center">
+                                <div class="px-3 py-2">
+                                    <p>Edit</p>
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
+                            <button data-popover-target="popover-bottom-delete-{{ loop.index }}"
+                                data-popover-placement="bottom" type="button"
+                                class="text-white mb-3 me-4 bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm px-2.5 py-1.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
+                                data-modal-target="crud-modal-delete" data-modal-toggle="crud-modal-delete"
+                                onclick="openDeleteLinkForm('{{ link.id }}', '{{ link.title }}', 'delete-link-form')"><i
+                                    class="fa-solid fa-trash text-xs"></i></button>
+                            <div data-popover id="popover-bottom-delete-{{ loop.index }}" role="tooltip"
+                                class="absolute z-10 invisible inline-block w-auto text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-xs opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800 flex items-center justify-center">
+                                <div class="px-3 py-2">
+                                    <p>Delete</p>
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <h2 class="hidden md:flex text-2xl text-center font-bold text-gray-900 dark:text-white"> Login First To See
+            Your
+            Conversations </h2>
+        {% endif %}
+    </main>
+
+    <!-- expand drawer -->
+    <div id="drawer-right"
+        class="fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform translate-x-full bg-white w-full md:w-[50%] lg:w-[40%] dark:bg-gray-800"
+        tabindex="-1" aria-labelledby="drawer-right-label">
+        <h5 id="drawer-right-label"
+            class="inline-flex items-center mb-4 text-base font-semibold text-black dark:text-white">Aetheris Nexus
+            Detailing AI Game Library Expandable </h5>
+        <button type="button" data-drawer-hide="drawer-right" aria-controls="drawer-right"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 top-2.5 end-2.5 inline-flex items-center justify-center dark:hover:bg-gray-600 dark:hover:text-white absolute">
+            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+            </svg>
+            <span class="sr-only">Close menu</span>
+        </button>
+
+        <!-- Drawer Content -->
+        <div class="mt-6">
+            <ul class="inline-flex flex-wrap border rounded-full p-1 bg-slate-100" id="prompt-tab"
+                data-tabs-toggle="#prompt-tab-content" role="tablist">
+                <li role="presentation">
+                    <button
+                        class="inline-block text-xs font-semibold text-center rounded-full p-2 hover:bg-white aria-selected:bg-white"
+                        id="original-tab" data-tabs-target="#original" type="button" role="tab" aria-controls="original"
+                        aria-selected="false">
+                        Original
+                    </button>
+                </li>
+
+                <li role="presentation">
+                    <button
+                        class="inline-block text-xs font-semibold text-center rounded-full p-2 hover:bg-white aria-selected:bg-white"
+                        id="preprocessing-tab" data-tabs-target="#preprocessing" type="button" role="tab"
+                        aria-controls="preprocessing" aria-selected="false">
+                        Preprocessing
+                    </button>
+                </li>
+            </ul>
+
+            <div id="prompt-tab-content" class="mt-4">
+                <!-- Original prompt -->
+                <ul class="hidden flex flex-col gap-y-5" id="original" role="tabpanel" aria-labelledby="original-tab">
+                    <!-- Sender Message -->
+                    <li class="p-4 rounded-2xl bg-gray-100 w-10/12 shadow ml-auto">
+                        <p class="text-sm text-black text-wrap">
+                            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                            Ea, officia.
+                        </p>
+                    </li>
+
+                    <!-- Receiver Message -->
+                    <li class="p-4 rounded-2xl bg-gray-100 w-10/12 shadow mr-auto">
+                        <p class="text-sm text-black text-wrap">
+                            Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+                            Enim dolores quibusdam nisi distinctio, consequuntur sed
+                            molestiae rerum, a modi voluptas corporis quas architecto,
+                            aspernatur deleniti reprehenderit eos officiis? Quasi,
+                            dolorem. Aut, asperiores minima? Neque ab incidunt rem
+                            itaque vero autem voluptatum! Maiores laudantium facere
+                            officiis et consequuntur quasi, rem fugiat nobis.
+                            Accusantium tempore repellat nihil laudantium id
+                            asperiores amet beatae dolore temporibus iste, at minima
+                            reiciendis distinctio? Perferendis non cupiditate nisi
+                            repellat reiciendis illum libero cum laboriosam. Cum
+                            debitis dolorum expedita, impedit corrupti laborum
+                            inventore eos quidem ut, non explicabo. Fuga qui,
+                            architecto error voluptatum odit dolore corrupti cumque in
+                            delectus voluptatibus velit modi. Ullam aliquam nisi
+                            provident nam suscipit vel ratione vitae iste accusamus
+                            accusantium maxime velit ad dolore natus rerum earum hic
+                            veniam quibusdam tempora aut, fugit, commodi id.
+                            Perferendis ea pariatur delectus minima, iure ducimus eum
+                            aliquam necessitatibus debitis, iusto, accusantium
+                            expedita! Animi assumenda dolorem itaque voluptatum. Eos
+                            quia quibusdam, sunt dolor rerum eius rem vel explicabo
+                            perspiciatis dolorum. Aut in laboriosam, nam dolorum iure
+                            officiis laborum libero doloremque aspernatur eligendi
+                            eius, perspiciatis voluptate ut excepturi accusamus, amet
+                            illum id a. Iusto nisi accusantium quaerat optio enim
+                            omnis eum expedita placeat modi, veritatis suscipit
+                            explicabo consectetur voluptatem?
+                        </p>
+                    </li>
+                </ul>
+
+                <!-- Preprocessing prompt -->
+                <ul class="hidden flex flex-col gap-y-5" id="preprocessing" role="tabpanel"
+                    aria-labelledby="preprocessing-tab">
+                    <!-- Sender Message -->
+                    <li class="p-4 rounded-2xl bg-gray-100 w-10/12 shadow ml-auto">
+                        <p class="text-sm text-black lowercase text-wrap">
+                            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                            Impedit suscipit, fuga ipsa et quidem iusto!
+                        </p>
+                    </li>
+
+                    <!-- Receiver Message -->
+                    <li class="p-4 rounded-2xl bg-gray-100 w-10/12 shadow mr-auto">
+                        <p class="text-sm text-black lowercase text-wrap">
+                            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                            Temporibus facilis molestias, velit illo doloremque maxime
+                            asperiores, natus laudantium quia, beatae deleniti facere.
+                            Tempore mollitia enim cum nostrum unde iusto labore quos
+                            consequatur inventore ipsam numquam assumenda vero tempora
+                            cumque doloremque, eveniet expedita, consectetur quam
+                            aliquid molestias in aspernatur omnis illo?
+                        </p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- upload modal -->
+    <div id="crud-modal-create" tabindex="-1" aria-hidden="true"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                <!-- Modal header -->
+                <div
+                    class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Upload your conversation
+                    </h3>
+                    <button type="button"
+                        class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                        data-modal-hide="crud-modal-create">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                </div>
+                <!-- Modal body -->
+                <div class="p-4 md:p-5">
+                    <form class="space-y-4" id="upload-link-form">
+                        <div>
+                            <label for="link" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your
+                                link conversation</label>
+                            <input type="text" name="link" id="link"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                placeholder="https://chatgpt.com/share/..." required />
+                        </div>
+                        <button type="submit"
+                            class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Upload
+                            link</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- edit modal -->
+    <div id="crud-modal-edit" tabindex="-1" aria-hidden="true"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                <!-- Modal header -->
+                <div class="flex items-center justify-between px-4 pt-4 md:px-5 rounded-t">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Edit your conversation
+                    </h3>
+                    <button type="button"
+                        class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                        data-modal-hide="crud-modal-edit">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                </div>
+                <div class="flex items-center border-b dark:border-gray-600 border-gray-200 px-4 pt-2 md:px-5 pb-4">
+                    <p class="text-sm text-gray-500 dark:text-gray-700"> Editing your conversation will delete all
+                        your previous chat. </p>
+                </div>
+                <!-- Modal body -->
+                <div class="p-4 md:p-5">
+                    <form class="space-y-4" id="edit-link-form">
+                        <h2 class="" id="link-title"> </h2>
+                        <input type="hidden" name="id-link" id="id-link" />
+                        <div>
+                            <label for="link" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your
+                                new link</label>
+                            <input type="text" name="link" id="link"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                placeholder="https://chatgpt.com/share/..." />
+                        </div>
+                        <button type="submit"
+                            class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Edit
+                            link</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- delete modal -->
+    <div id="crud-modal-delete" tabindex="-1"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                <button type="button"
+                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    data-modal-hide="crud-modal-delete">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+                <div class="p-4 md:p-5 text-center">
+                    <form id="delete-link-form">
+                        <input type="hidden" name="id-link" id="id-link" />
+                        <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        <h2 class="" id="link-title"></h2>
+                        <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Are you sure you want
+                            to
+                            delete
+                            this conversation?</h3>
+                        <button type="submit"
+                            class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                            Yes, I'm sure
+                        </button>
+                        <button data-modal-hide="crud-modal-delete" type="button" id="close-modal"
+                            class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">No,
+                            cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- sign up modal -->
+    <div id="authentication-modal-signup" tabindex="-1" aria-hidden="true"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                <!-- Modal header -->
+                <div
+                    class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Create your account
+                    </h3>
+                    <button type="button"
+                        class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                        data-modal-hide="authentication-modal-signup">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                </div>
+                <!-- Modal body -->
+                <div class="p-4 md:p-5">
+                    <form class="space-y-4" id="signup-form">
+                        <div>
+                            <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your
+                                name</label>
+                            <input type="text" name="name" id="name"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                placeholder="Juhari" />
+                        </div>
+                        <div>
+                            <label for="username"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your
+                                username</label>
+                            <input type="text" name="username" id="username"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                placeholder="juhari12" />
+                        </div>
+                        <div>
+                            <label for="password"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your
+                                password</label>
+                            <input type="password" name="password" id="password" placeholder="••••••••"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
+                        </div>
+                        <div>
+                            <label for="repeat-password"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Repeat your
+                                password</label>
+                            <input type="password" name="repeat-password" id="repeat-password" placeholder="••••••••"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
+                        </div>
+                        <button type="submit"
+                            class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Create
+                            an account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- sign in modal -->
+    <div id="authentication-modal-signin" tabindex="-1" aria-hidden="true"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                <!-- Modal header -->
+                <div
+                    class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Sign in to our platform
+                    </h3>
+                    <button type="button"
+                        class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                        data-modal-hide="authentication-modal-signin">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                </div>
+                <!-- Modal body -->
+                <div class="p-4 md:p-5">
+                    <form class="space-y-4" id="login-form">
+                        <div>
+                            <label for="username"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your
+                                username</label>
+                            <input type="text" name="username" id="username"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                                placeholder="juhari12" />
+                        </div>
+                        <div>
+                            <label for="password"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your
+                                password</label>
+                            <input type="password" name="password" id="password" placeholder="••••••••"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
+                        </div>
+                        <button type="submit"
+                            class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Login
+                            to your account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- sign out modal -->
+    <div id="popup-modal-signout" tabindex="-1"
+        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                <button type="button"
+                    class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    data-modal-hide="popup-modal-signout">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+                <div class="p-4 md:p-5 text-center">
+                    <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Are you sure you want to
+                        sign out?</h3>
+                    <button type="button"
+                        class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
+                        onclick="signOut()">
+                        Yes, I'm sure
+                    </button>
+                    <button data-modal-hide="popup-modal-signout" type="button" id="signout-cancel"
+                        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">No,
+                        cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Loading Modal -->
+    <div role="status" id="loading-modal"
+        class="hidden fixed top-0 left-0 w-full h-full bg-black/[.3] inline-flex justify-center items-center z-[999]">
+        <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+            viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="currentColor" />
+            <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentFill" />
+        </svg>
+        <span class="sr-only">Loading...</span>
+    </div>
+
+    <!-- Flowbite -->
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+
+    <!-- Sweetalert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // on click event
+        function changeFocus(modalId, firstInputId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) {
+                return;
+            }
+
+            const firstInput = modal.querySelector(`#${firstInputId}`);
+            if (firstInput) {
+                setTimeout(() => {
+                    firstInput.focus();
+                }, 50);
+            }
+        }
+
+        function signOut() {
+            const loadingModal = document.getElementById("loading-modal");
+            loadingModal.classList.remove("hidden");
+            Swal.fire({
+                title: "Success!",
+                text: "Successfully signed out",
+                icon: "success",
+                confirmButtonText: "OK"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/logout"; // Reload hanya setelah OK ditekan
+                }
+            })
+        }
+
+        function openEditLinkForm(linkId, link, formId, linkTitle) {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.querySelector("#id-link").value = linkId;
+                form.querySelector("#link").value = link;
+                form.querySelector("#link-title").innerHTML = linkTitle;
+            }
+
+            changeFocus(formId, "link");
+        }
+
+        function openDeleteLinkForm(linkId, linkTitle, formId) {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.querySelector("#id-link").value = linkId;
+                form.querySelector("#link-title").innerHTML = linkTitle;
+            }
+
+            changeFocus(formId, "close-modal");
+        }
+
+        function openDrawer(title, conversations) {
+            document.getElementById("drawer-right-label").textContent = title;
+            const charContainer = document.getElementById("original");
+            const charPPContainer = document.getElementById("preprocessing");
+            charContainer.innerHTML = "";
+            charPPContainer.innerHTML = "";
+
+            conversations.forEach(element => {
+                const promptLi = document.createElement("li");
+                promptLi.classList.add("p-4", "rounded-2xl", "bg-gray-100", "w-10/12", "md:w-8/12", "shadow", "ml-auto");
+                const promptP = document.createElement("p");
+                promptP.classList.add("text-sm", "text-wrap", "w-full");
+                promptP.innerHTML = element.prompt.replace(/\n/g, "<br>");
+                promptLi.append(promptP);
+                charContainer.append(promptLi);
+
+                // Menampilkan response utama
+                const responseLi = document.createElement("li");
+                responseLi.classList.add("p-4", "w-full", "mr-auto");
+                const responseP = document.createElement("p");
+                responseP.classList.add("text-sm", "text-black", "text-wrap");
+
+                // Membuat elemen sementara untuk memproses response
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = element.response;
+
+                // Fungsi rekursif untuk mengganti \n hanya di luar tag <pre>
+                function replaceNewlinesOutsidePre(node) {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        node.textContent = node.textContent.replace(/\n/g, "⏎"); // Tandai newline
+                    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== "PRE") {
+                        Array.from(node.childNodes).forEach(replaceNewlinesOutsidePre);
+                    }
+                }
+
+                // Memproses elemen response
+                replaceNewlinesOutsidePre(tempDiv);
+
+                // Konversi kembali tanda ⏎ ke <br> menggunakan innerHTML
+                responseP.innerHTML = tempDiv.innerHTML.replace(/⏎/g, "<br>");
+
+                responseLi.append(responseP);
+                charContainer.append(responseLi);
+
+                // Mengecek apakah ada tombol "Copy" di dalam response
+                const copyButtons = responseLi.querySelectorAll("button[aria-label='Copy']");
+
+                copyButtons.forEach(button => {
+                    button.addEventListener("click", function () {
+                        let preElement = this.closest("pre");
+
+                        if (preElement) {
+                            let codeElement = preElement.querySelector("code");
+                            if (codeElement) {
+                                let textToCopy = codeElement.innerText.trim();
+
+                                // Menyalin teks ke clipboard
+                                navigator.clipboard.writeText(textToCopy).then(() => {
+                                    // Mengubah teks tombol menjadi "Copied!"
+                                    this.innerHTML = `<svg class="icon-xs" fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                    <path clip-rule="evenodd" d="M7 5C7 3.34315 8.34315 2 10 2H19C20.6569 2 22 3.34315 22 5V14C22 15.6569 20.6569 17 19 17H17V19C17 20.6569 15.6569 22 14 22H5C3.34315 22 2 20.6569 2 19V10C2 8.34315 3.34315 7 5 7H7V5ZM9 7H14C15.6569 7 17 8.34315 17 10V15H19C19.5523 15 20 14.5523 20 14V5C20 4.44772 19.5523 4 19 4H10C9.44772 4 9 4.44772 9 5V7ZM5 9C4.44772 9 4 9.44772 4 10V19C4 19.5523 4.44772 20 5 20H14C14.5523 20 15 19.5523 15 19V10C15 9.44772 14.5523 9 14 9H5Z" fill="currentColor" fill-rule="evenodd"></path></svg> Copied!`;
+                                    this.setAttribute("aria-label", "Copied");
+
+                                    // Mengembalikan ke "Copy" setelah 2 detik
+                                    setTimeout(() => {
+                                        this.innerHTML = `<svg class="icon-xs" fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd" d="M7 5C7 3.34315 8.34315 2 10 2H19C20.6569 2 22 3.34315 22 5V14C22 15.6569 20.6569 17 19 17H17V19C17 20.6569 15.6569 22 14 22H5C3.34315 22 2 20.6569 2 19V10C2 8.34315 3.34315 7 5 7H7V5ZM9 7H14C15.6569 7 17 8.34315 17 10V15H19C19.5523 15 20 14.5523 20 14V5C20 4.44772 19.5523 4 19 4H10C9.44772 4 9 4.44772 9 5V7ZM5 9C4.44772 9 4 9.44772 4 10V19C4 19.5523 4.44772 20 5 20H14C14.5523 20 15 19.5523 15 19V10C15 9.44772 14.5523 9 14 9H5Z" fill="currentColor" fill-rule="evenodd"></path></svg> Copy`;
+                                        this.setAttribute("aria-label", "Copy");
+                                    }, 2000);
+                                }).catch(err => {
+                                    console.error("Gagal menyalin kode:", err);
+                                });
+                            }
+                        }
+                    });
+                });
+
+
+                // Menampilkan pp_prompt
+                const ppPromptLi = document.createElement("li");
+                ppPromptLi.classList.add("p-4", "rounded-2xl", "bg-gray-100", "w-10/12", "md:w-8/12", "shadow", "ml-auto");
+                const ppPromptP = document.createElement("p");
+                ppPromptP.classList.add("text-sm", "text-black", "text-wrap");
+                ppPromptP.innerHTML = element.pp_prompt.replace(/\n/g, "<br>");
+                ppPromptLi.append(ppPromptP);
+                charPPContainer.append(ppPromptLi);
+
+                // Menampilkan pp_response
+                const ppResponseLi = document.createElement("li");
+                ppResponseLi.classList.add("p-4", "w-10/12", "mr-auto", "rounded-2xl", "bg-gray-100", "shadow");
+                const ppResponseP = document.createElement("p");
+                ppResponseP.classList.add("text-sm", "text-black", "text-wrap");
+                ppResponseP.innerHTML = element.pp_response.replace(/\n/g, "<br>");
+                ppResponseLi.append(ppResponseP);
+                charPPContainer.append(ppResponseLi);
+
+                setTimeout(() => {
+                    if (typeof hljs !== "undefined") {
+                        document.querySelectorAll("pre code").forEach(el => {
+                            hljs.highlightElement(el);
+                        });
+                        console.log("Highlight.js dijalankan!");
+                    } else {
+                        console.error("Highlight.js tidak ditemukan! Pastikan sudah dimuat.");
+                    }
+                }, 100); // Delay agar elemen sudah masuk ke DOM
+            });
+
+        }
+
+        function handleClick(button) {
+            let title = button.getAttribute("data-title");
+            console.log(button.getAttribute("data-conversations"));
+            let conversations = JSON.parse(button.getAttribute("data-conversations"));
+            console.log(conversations);
+            openDrawer(title, conversations);
+        }
+    </script>
+
+    <!-- Just Validate -->
+    <script src="https://cdn.jsdelivr.net/npm/just-validate@4.3.0/dist/just-validate.production.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('delete-link-form').addEventListener('submit', function (event) {
+                event.preventDefault(); // Mencegah submit default form
+
+                const loadingModal = document.getElementById("loading-modal");
+                loadingModal.classList.remove("hidden"); // Tampilkan loading modal
+                const formData = new FormData(this); // Ambil form data otomatis
+
+                fetch('/delete-link', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Berhasil menghapus link
+                            Swal.fire({
+                                title: 'Success!',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    location.reload(); // Reload halaman
+                                }
+                            })
+                        } else {
+                            // Gagal menghapus link
+                            Swal.fire({
+                                title: 'Error!',
+                                text: data.message,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    loadingModal.classList.add("hidden"); // Sembunyikan loading modal
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loadingModal.classList.add("hidden");
+                    })
+            });
+            //#region Register
+            const signUpValidation = new JustValidate('#signup-form', {
+                validateOnChange: true,  // Validasi saat user mengetik
+            });
+
+            signUpValidation
+                .addField("#name", [
+                    { rule: "required", errorMessage: "*Name is required" },
+                    { rule: "minLength", value: 3, errorMessage: "*Name must be at least 3 characters" },
+                    { rule: "maxLength", value: 50, errorMessage: "*Name must be at most 50 characters" }
+                ])
+                .addField("#username", [
+                    { rule: "required", errorMessage: "*Username is required" },
+                    { rule: "minLength", value: 3, errorMessage: "*Username must be at least 3 characters" },
+                    { rule: "maxLength", value: 20, errorMessage: "*Username must be at most 20 characters" },
+                    { validator: (value) => /^[a-z0-9_]+$/.test(value), errorMessage: "*Username can only contain lowercase letters, numbers, and underscores" },
+                    {
+                        validator: (value) => () =>  // Perbaikan: Mengembalikan fungsi yang return Promise
+                            new Promise((resolve) => {
+                                fetch("/check-username", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ username: value }),
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        console.log("Server response:", data); // Debugging
+                                        resolve(data.valid); // true jika tersedia, false jika sudah dipakai
+                                    })
+                                    .catch(error => {
+                                        console.error("Error checking username:", error);
+                                        resolve(false); // Jika error, anggap username sudah dipakai
+                                    });
+                            }),
+                        errorMessage: "*Username is already taken"
+                    }
+                ])
+                .addField("#password", [
+                    { rule: "required", errorMessage: "*Password is required" },
+                    { rule: "minLength", value: 8, errorMessage: "*Password must be at least 8 characters" },
+                    { validator: (value) => /[a-z]/.test(value), errorMessage: "*Password must contain at least one lowercase letter" },
+                    { validator: (value) => /[A-Z]/.test(value), errorMessage: "*Password must contain at least one uppercase letter" },
+                    { validator: (value) => /\d/.test(value), errorMessage: "*Password must contain at least one number" },
+                    { validator: (value) => /[@$!%*?&#]/.test(value), errorMessage: "*Password must contain at least one special character (@$!%*?&#)" }
+                ])
+                .addField("#repeat-password", [
+                    { rule: "required", errorMessage: "*Please repeat your password" },
+                    {
+                        validator: (value, fields) => {
+                            return value === fields["#password"].elem.value;
+                        },
+                        errorMessage: "*Passwords do not match",
+                    }
+                ])
+                .onSuccess((event) => {
+                    event.preventDefault(); // Mencegah submit default form
+
+                    const loadingModal = document.getElementById("loading-modal");
+                    loadingModal.classList.remove("hidden"); // Tampilkan loading modal
+                    const formData = new FormData(event.target); // Ambil form data otomatis
+
+                    fetch("/register", {
+                        method: "POST",
+                        body: formData, // Kirim langsung FormData tanpa mengubah ke JSON
+                    })
+                        .then((res) => res.json())
+                        .then((data) => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: data.message,
+                                    icon: "success",
+                                    confirmButtonText: "OK"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        location.reload(); // Reload hanya setelah OK ditekan
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: "Error!",
+                                    text: data.message,
+                                    icon: "error",
+                                    confirmButtonText: "OK"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        loadingModal.classList.add("hidden");
+                                    }
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error:", error);
+                            loadingModal.classList.add("hidden");
+                        });
+                });
+            //#endregion
+
+            //#region Login
+            const signInValidation = new JustValidate('#login-form', {
+                validateOnChange: true,  // Validasi saat user mengetik
+            });
+
+            signInValidation
+                .addField("#username", [
+                    { rule: "required", errorMessage: "*Username is required" },
+                    { rule: "minLength", value: 3, errorMessage: "*Username must be at least 3 characters" },
+                    { rule: "maxLength", value: 20, errorMessage: "*Username must be at most 20 characters" },
+                    { validator: (value) => /^[a-z0-9_]+$/.test(value), errorMessage: "*Username can only contain lowercase letters, numbers, and underscores" },
+                ])
+                .addField("#password", [
+                    { rule: "required", errorMessage: "*Password is required" },
+                    { rule: "minLength", value: 8, errorMessage: "*Password must be at least 8 characters" },
+                    { validator: (value) => /[a-z]/.test(value), errorMessage: "*Password must contain at least one lowercase letter" },
+                    { validator: (value) => /[A-Z]/.test(value), errorMessage: "*Password must contain at least one uppercase letter" },
+                    { validator: (value) => /\d/.test(value), errorMessage: "*Password must contain at least one number" },
+                    { validator: (value) => /[@$!%*?&#]/.test(value), errorMessage: "*Password must contain at least one special character (@$!%*?&#)" }
+                ])
+                .onSuccess((event) => {
+                    event.preventDefault(); // Mencegah submit default form
+
+                    const loadingModal = document.getElementById("loading-modal");
+                    loadingModal.classList.remove("hidden"); // Tampilkan loading modal
+                    const formData = new FormData(event.target); // Ambil form data otomatis
+
+                    fetch("/login", {
+                        method: "POST",
+                        body: formData, // Kirim langsung FormData tanpa mengubah ke JSON
+                    })
+                        .then((res) => res.json())
+                        .then((data) => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: data.message,
+                                    icon: "success",
+                                    confirmButtonText: "OK"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        location.reload(); // Reload hanya setelah OK ditekan
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: "Error!",
+                                    text: data.message,
+                                    icon: "error",
+                                    confirmButtonText: "OK"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        loadingModal.classList.add("hidden");
+                                    }
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error:", error);
+                            loadingModal.classList.add("hidden");
+                        });
+                });
+            //#endregion
+
+            //#region Upload Link
+            const uploadLinkValidation = new JustValidate('#upload-link-form', {
+                validateOnChange: true,  // Validasi saat user mengetik
+            });
+
+            uploadLinkValidation
+                .addField("#link", [
+                    { rule: "required", errorMessage: "*Link is required" },
+                    {
+                        validator: (value) => value.startsWith("https://chatgpt.com/share/"),
+                        errorMessage: "*The link must start with 'https://chatgpt.com/share/'"
+                    },
+                    {
+                        validator: (value) => () =>  // Perbaikan: Mengembalikan fungsi yang return Promise
+                            new Promise((resolve) => {
+                                fetch("/check-link", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ link: value }),
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        console.log("Server response:", data); // Debugging
+                                        resolve(data.valid); // true jika tersedia, false jika sudah dipakai
+                                    })
+                                    .catch(error => {
+                                        console.error("Error checking username:", error);
+                                        resolve(false); // Jika error, anggap username sudah dipakai
+                                    });
+                            }),
+                        errorMessage: "*Link already exists"
+                    }
+                ])
+                .onSuccess((event) => {
+                    event.preventDefault(); // Mencegah submit default form
+
+                    const loadingModal = document.getElementById("loading-modal");
+                    loadingModal.classList.remove("hidden"); // Tampilkan loading modal
+                    const formData = new FormData(event.target); // Ambil form data otomatis
+                    fetch("/upload-link", {
+                        method: "POST",
+                        body: formData, // Kirim langsung FormData tanpa mengubah ke JSON
+                    })
+                        .then((res) => res.json())
+                        .then((data) => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: data.message,
+                                    icon: "success",
+                                    confirmButtonText: "OK"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        location.reload(); // Reload hanya setelah OK ditekan
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: "Error!",
+                                    text: data.message,
+                                    icon: "error",
+                                    confirmButtonText: "OK"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        loadingModal.classList.add("hidden");
+                                    }
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error:", error);
+                            loadingModal.classList.add("hidden");
+                        });
+                });
+            //#endregion
+
+            //#region Edit Link
+            const editLinkValidation = new JustValidate('#edit-link-form', {
+                validateOnChange: true,  // Validasi saat user mengetik
+            });
+
+            editLinkValidation
+                .addField("#link", [
+                    { rule: "required", errorMessage: "*Link is required" },
+                    {
+                        validator: (value) => value.startsWith("https://chatgpt.com/share/"),
+                        errorMessage: "*The link must start with 'https://chatgpt.com/share/'"
+                    },
+                    {
+                        validator: (value) => () =>  // Perbaikan: Mengembalikan fungsi yang return Promise
+                            new Promise((resolve) => {
+                                fetch("/check-link", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ link: value }),
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        console.log("Server response:", data); // Debugging
+                                        resolve(data.valid); // true jika tersedia, false jika sudah dipakai
+                                    })
+                                    .catch(error => {
+                                        console.error("Error checking username:", error);
+                                        resolve(false); // Jika error, anggap username sudah dipakai
+                                    });
+                            }),
+                        errorMessage: "*Link already exists"
+                    }
+                ])
+                .onSuccess((event) => {
+                    event.preventDefault(); // Mencegah submit default form
+
+                    const loadingModal = document.getElementById("loading-modal");
+                    loadingModal.classList.remove("hidden"); // Tampilkan loading modal
+                    const formData = new FormData(event.target); // Ambil form data otomatis
+                    fetch("/edit-link", {
+                        method: "POST",
+                        body: formData, // Kirim langsung FormData tanpa mengubah ke JSON
+                    })
+                        .then((res) => res.json())
+                        .then((data) => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: data.message,
+                                    icon: "success",
+                                    confirmButtonText: "OK"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        location.reload(); // Reload hanya setelah OK ditekan
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: "Error!",
+                                    text: data.message,
+                                    icon: "error",
+                                    confirmButtonText: "OK"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        loadingModal.classList.add("hidden");
+                                    }
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error:", error);
+                            loadingModal.classList.add("hidden");
+                        });
+                });
+            //#endregion
+        });
+    </script>
+
+</body>
+
+</html>
